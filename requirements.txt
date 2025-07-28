@@ -1,0 +1,10 @@
+langchain
+python-dotenv
+langchain-openai
+notebook
+langchain_groq
+langchain-google-genai
+pypdf
+faiss-cpu
+langchain_community
+-e .
