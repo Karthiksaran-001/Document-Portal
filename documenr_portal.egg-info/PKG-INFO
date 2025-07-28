@@ -1,9 +1,0 @@
-Metadata-Version: 2.4
-Name: documenr_portal
-Version: 0.1
-Author: Karthik Saran
-Requires-Dist: fastapi
-Requires-Dist: uvicorn
-Requires-Dist: python-dotenv
-Dynamic: author
-Dynamic: requires-dist
