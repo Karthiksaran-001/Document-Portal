@@ -7,4 +7,6 @@ langchain-google-genai
 pypdf
 faiss-cpu
 langchain_community
+structlog
+PyMuPDF
 -e .

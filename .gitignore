@@ -2,3 +2,8 @@
 notebook/data
 .env
 document_portal.egg-info/
+__pycache__/
+logs/
+data/
+*.pyc
+test.py
