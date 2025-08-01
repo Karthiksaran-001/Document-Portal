@@ -14,7 +14,7 @@ class CustomLogging:
 
     def get_logger(self,name =__file__):
         logger_name = os.path.basename(name)
-        logger = logging.getLogger(logger_name)
+        #logger = logging.getLogger(logger_name)
 
         # Configure logging for console + file (both JSON)
         file_handler = logging.FileHandler(self.LOG_FILE_PATH)
@@ -42,13 +42,14 @@ class CustomLogging:
             logger_factory=structlog.stdlib.LoggerFactory(),
             cache_logger_on_first_use=True,
         )
-        if not logger.handlers:
-            logger.addHandler(file_handler)
-            logger.addHandler(console_handler)
-        #return structlog.get_logger(logger_name)
-        return logger
+        # if not logger.handlers:
+        #     logger.addHandler(file_handler)
+        #     logger.addHandler(console_handler)
+        return structlog.get_logger(logger_name)
+        #return logger
 
 if __name__ == "__main__":
     logger = CustomLogging()
     logger = logger.get_logger(__file__)
-    logger.info("Stream Handler is Working")
+    #logger.info("Stream Handler is Working")
+    logger.error("Failed to process PDF", error="File not found", user_id=123)
