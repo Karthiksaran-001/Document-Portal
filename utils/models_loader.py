@@ -87,21 +87,21 @@ class ModelLoader:
             raise DocumentPortalException("Failed to load embedding model", sys)
         
 
-if __name__ == "__main__":
-    loader = ModelLoader()
+# if __name__ == "__main__":
+#     loader = ModelLoader()
     
-    # Test embedding model loading
-    embeddings = loader.load_embedding()
-    print(f"Embedding Model Loaded: {embeddings}")
+#     # Test embedding model loading
+#     embeddings = loader.load_embedding()
+#     print(f"Embedding Model Loaded: {embeddings}")
     
-    # Test the ModelLoader
-    result=embeddings.embed_query("Hello, how are you?")
-    print(f"Embedding Result: {result}")
+#     # Test the ModelLoader
+#     result=embeddings.embed_query("Hello, how are you?")
+#     print(f"Embedding Result: {result}")
     
-    # Test LLM loading based on YAML config
-    llm = loader.load_model()
-    print(f"LLM Loaded: {llm}")
+#     # Test LLM loading based on YAML config
+#     llm = loader.load_model()
+#     print(f"LLM Loaded: {llm}")
     
-    # Test the ModelLoader
-    result=llm.invoke("Hello, how are you?")
-    print(f"LLM Result: {result.content}")
+#     # Test the ModelLoader
+#     result=llm.invoke("Hello, how are you?")
+#     print(f"LLM Result: {result.content}")

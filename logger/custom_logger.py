@@ -12,11 +12,12 @@ class CustomLogging:
         self.LOG_FILE_PATH = os.path.join(self.logs_dir , self.log_file)
         logging.basicConfig(filename= self.LOG_FILE_PATH,level= logging.INFO,format= "[ %(asctime)s ] %(levelname)s  [%(name)s] - (line-Num:%(lineno)d) -  %(message)s",force= True)
 
-    def get_logger(self,name =__file__):
+    def get_logger(self, name =__file__):
         logger_name = os.path.basename(name)
         #logger = logging.getLogger(logger_name)
 
         # Configure logging for console + file (both JSON)
+        #print(f"File : {self.LOG_FILE_PATH}")
         file_handler = logging.FileHandler(self.LOG_FILE_PATH)
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(logging.Formatter("%(message)s"))  # Raw JSON lines
@@ -48,8 +49,8 @@ class CustomLogging:
         return structlog.get_logger(logger_name)
         #return logger
 
-if __name__ == "__main__":
-    logger = CustomLogging()
-    logger = logger.get_logger(__file__)
-    #logger.info("Stream Handler is Working")
-    logger.error("Failed to process PDF", error="File not found", user_id=123)
+# if __name__ == "__main__":
+#     logger = CustomLogging()
+#     logger = logger.get_logger(__file__)
+#     #logger.info("Stream Handler is Working")
+#     logger.error("Failed to process PDF", error="File not found", user_id=123)
