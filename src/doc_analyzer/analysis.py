@@ -1,18 +1,59 @@
-import os 
-from langchain_core.output_parsers import JsonOutputParser 
-from langchain.output_parsers import OutputFixingParser
-from model.models import *
+import os
+import sys
 from utils.models_loader import ModelLoader
 from logger.custom_logger import CustomLogging
 from exception.custom_exception import DocumentPortalException
-
+from model.models import *
+from langchain_core.output_parsers import JsonOutputParser
+from langchain.output_parsers import OutputFixingParser
+from prompt.prompt_library import PROPMT_REGISTRY
 
 class DocumentAnalyzer:
     """
-        Analysis Data as per PreTrained Model
-        Automatically log all the actions and supports session-based organization.
+    Analyzes documents using a pre-trained model.
+    Automatically logs all actions and supports session-based organization.
     """
     def __init__(self):
-        pass  
-    def analyze_metadata(self):
-        pass
+        self.log = CustomLogging().get_logger(__name__)
+        try:
+            self.loader=ModelLoader()
+            self.llm=self.loader.load_model()
+            
+            # Prepare parsers
+            self.parser = JsonOutputParser(pydantic_object=MetaData)
+            self.fixing_parser = OutputFixingParser.from_llm(parser=self.parser, llm=self.llm)
+            
+            self.prompt = PROPMT_REGISTRY["document_analysis"]
+            
+            self.log.info("DocumentAnalyzer initialized successfully")
+            
+            
+        except Exception as e:
+            self.log.error(f"Error initializing DocumentAnalyzer: {e}")
+            raise DocumentPortalException("Error in DocumentAnalyzer initialization", sys)
+        
+        
+    
+    def analyze_document(self, document_text:str)-> dict:
+        """
+        Analyze a document's text and extract structured metadata & summary.
+        """
+        try:
+            chain = self.prompt | self.llm | self.fixing_parser
+            
+            self.log.info("Meta-data analysis chain initialized")
+
+            response = chain.invoke({
+                "format_instructions": self.parser.get_format_instructions(),
+                "document_text": document_text
+            })
+
+            self.log.info("Metadata extraction successful", keys=list(response.keys()))
+            
+            return response
+
+        except Exception as e:
+            self.log.error("Metadata analysis failed", error=str(e))
+            raise DocumentPortalException("Metadata extraction failed",sys)
+        
+    
