@@ -4,7 +4,6 @@ notebook/data
 document_portal.egg-info/
 __pycache__/
 logs/
-data/
 *.pyc
 test.py
-data/
+*.pdf

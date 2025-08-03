@@ -2,6 +2,7 @@ langchain
 python-dotenv
 langchain-openai
 notebook
+pandas
 langchain_groq
 langchain-google-genai
 pypdf
