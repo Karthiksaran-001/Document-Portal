@@ -56,6 +56,8 @@ class DocumentHandler:
         try:
             text_chunks = []
             with fitz.open(pdf_path) as doc:
+                if doc.is_encrypted:
+                    raise ValueError("PDF is encrypted Cannot read from path :{file_path}")
                 for page_num, page in enumerate(doc, start=1): # type: ignore
                     text_chunks.append(f"\n--- Page {page_num} ---\n{page.get_text()}")
             text = "\n".join(text_chunks)

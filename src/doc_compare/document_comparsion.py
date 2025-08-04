@@ -18,20 +18,29 @@ class DocumentComparatorLLM:
         self.loader = ModelLoader()
         self.llm = self.loader.load_model() 
         self.parser = JsonOutputParser(pydantic_object= SummaryResponse)
-        self.fixing_parser = OutputFixingParser(parser=self.parser, llm=self.llm)
+        self.fixing_parser = OutputFixingParser.from_llm(parser=self.parser, llm=self.llm)
         self.prompt = PROPMT_REGISTRY["document_comparison"]
-        self.chain = self.prompt | self.llm | self.parser | self.fixing_parser
+        self.chain = self.prompt | self.llm | self.parser
         self.log.info("DocumentComparatorLLM initialized with model and parser")
-    def compare_documents(self):
+    def compare_documents(self , combined_doc):
         try:
-            pass 
+            inputs = {
+                "combined_docs" : combined_doc,
+                "format_instruction" : self.parser.get_format_instructions()    
+            } 
+            self.log.info("Starting Doc Comparision" , inputs = inputs)
+            response = self.chain.invoke(inputs)
+            self.log.info("Document Comparision completed" , response = response)
+            return self._format_response(response)
         except Exception as e:
             self.log.error(f"Error Occured while compare_documents : {e}")
             raise DocumentPortalException("Error Occured while compare_documents" , sys)
     
-    def _format_response(self):
+    def _format_response(self,response:list[dict])->pd.DataFrame:
         try:
-            pass 
+            response_df = pd.DataFrame(response)
+            self.log.info("Convert response into DataFrame" , df = response_df)
+            return response_df 
         except Exception as e:
             self.log.error(f"Error Occured while compare_documents : {e}")
             raise DocumentPortalException("Error Occured while compare_documents" , sys)
