@@ -1,24 +1,23 @@
+import os
 import logging
 from datetime import datetime
-import os
 import structlog
 
 class CustomLogging:
-    def __init__(self , log_dir = "logs"):
-        self.logs_dir = os.path.join(os.getcwd() , log_dir)
-        os.makedirs(self.logs_dir , exist_ok= True)
+    def __init__(self, log_dir="logs"):
+        # Ensure logs directory exists
+        self.logs_dir = os.path.join(os.getcwd(), log_dir)
+        os.makedirs(self.logs_dir, exist_ok=True)
 
-        self.log_file = f"LOG_{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.log"
-        self.LOG_FILE_PATH = os.path.join(self.logs_dir , self.log_file)
-        logging.basicConfig(filename= self.LOG_FILE_PATH,level= logging.INFO,format= "[ %(asctime)s ] %(levelname)s  [%(name)s] - (line-Num:%(lineno)d) -  %(message)s",force= True)
+        # Timestamped log file (for persistence)
+        log_file = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.log"
+        self.log_file_path = os.path.join(self.logs_dir, log_file)
 
-    def get_logger(self, name =__file__):
+    def get_logger(self, name=__file__):
         logger_name = os.path.basename(name)
-        #logger = logging.getLogger(logger_name)
 
         # Configure logging for console + file (both JSON)
-        #print(f"File : {self.LOG_FILE_PATH}")
-        file_handler = logging.FileHandler(self.LOG_FILE_PATH)
+        file_handler = logging.FileHandler(self.log_file_path)
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(logging.Formatter("%(message)s"))  # Raw JSON lines
 
@@ -43,14 +42,12 @@ class CustomLogging:
             logger_factory=structlog.stdlib.LoggerFactory(),
             cache_logger_on_first_use=True,
         )
-        # if not logger.handlers:
-        #     logger.addHandler(file_handler)
-        #     logger.addHandler(console_handler)
-        return structlog.get_logger(logger_name)
-        #return logger
 
+        return structlog.get_logger(logger_name)
+
+
+# --- Usage Example ---
 # if __name__ == "__main__":
-#     logger = CustomLogging()
-#     logger = logger.get_logger(__file__)
-#     #logger.info("Stream Handler is Working")
+#     logger = CustomLogging().get_logger(__file__)
+#     logger.info("User uploaded a file", user_id=123, filename="report.pdf")
 #     logger.error("Failed to process PDF", error="File not found", user_id=123)

@@ -4,32 +4,25 @@ import fitz
 from logger.custom_logger import CustomLogging
 from exception.custom_exception import DocumentPortalException
 from dotenv import load_dotenv
+from datetime import datetime, timezone
+import uuid
 
 
 class DocumentIngestion:
-    def __init__(self,base_dir:str = "data\document_compare"):
+    def __init__(self,base_dir:str = "data\document_compare", session_id = None):
         self.log = CustomLogging().get_logger(__name__)
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
+        self.session_id = session_id or f"session_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+        self.session_path = self.base_dir / self.session_id
+        self.session_path.mkdir(parents=True, exist_ok=True)
 
-
-    def delete_existing_files(self):
-        try:
-            if self.base_dir.exists() and self.base_dir.is_dir():
-                for file in self.base_dir.iterdir():
-                    if file.is_file():
-                        file.unlink()
-                        self.log.info("Delete existing file" , path = str(file))
-                self.log.info("All existing files deleted" , dir = str(self.base_dir))
-        except Exception as e:
-            self.log.error(f"Error Occured while delete existing : {e}")
-            raise DocumentPortalException("Error Occured while delete existing" , sys)
     def save_uploaded_files(self , ref_file , act_file):
         try:
-            #self.delete_existing_files()
-            #self.log.info("Delete Existing file Successfully")
-            ref_path = Path(os.path.join(self.base_dir , ref_file.name))
-            act_path = Path(os.path.join(self.base_dir , act_file.name))
+            ref_path = self.session_path / ref_file.name
+            act_path = self.session_path / act_file.name
+            #ref_path = Path(os.path.join(self.base_dir , ref_file.name))
+            #act_path = Path(os.path.join(self.base_dir , act_file.name))
             if not ref_file.name.lower().endswith(".pdf") or not act_file.name.lower().endswith(".pdf"):
                 raise ValueError("Only PDF files are allowed.")
             #print(ref_path)
@@ -41,28 +34,30 @@ class DocumentIngestion:
 
             self.log.info("Files saved", reference=str(ref_path), actual=str(act_path))
             return ref_path, act_path
-            
-
         except Exception as e:
             self.log.error(f"Error Occured while upload file : {e}")
             raise DocumentPortalException("Error Occured while upload file" , sys) 
-    def read_pdf(self , file_path:Path)->str:
+    def read_pdf(self, pdf_path: Path) -> str:
+        """
+        Read text content of a PDF page-by-page.
+        """
         try:
-            with fitz.open(file_path) as doc:
+            with fitz.open(pdf_path) as doc:
                 if doc.is_encrypted:
-                    raise ValueError("PDF is encrypted Cannot read from path :{file_path}")
+                    raise ValueError(f"PDF is encrypted: {pdf_path.name}")
                 all_text = []
-                for page in range(doc.page_count):
-                    page = doc.load_page(page)
-                    text = page.get_text()
+                for page_num in range(doc.page_count):
+                    page = doc.load_page(page_num)
+                    text = page.get_text()  # type: ignore
                     if text.strip():
-                        all_text.append(f"\n --- Page {page} --- \n {text}")
-                self.log.info("Successfully read PDf from : {file_path}")
-                all_text = "\n".join(all_text)
-                return all_text 
+                        all_text.append(f"\n --- Page {page_num + 1} --- \n{text}")
+
+            self.log.info("PDF read successfully", file=str(pdf_path), pages=len(all_text))
+            return "\n".join(all_text)
+
         except Exception as e:
-            self.log.error(f"Error Occured while Reading PDF : {e}")
-            raise DocumentPortalException("Error Occured while reading file" , sys) 
+            self.log.error("Error reading PDF", file=str(pdf_path), error=str(e))
+            raise DocumentPortalException("Error reading PDF", sys)
         
     def combined_documents(self):
         try:
@@ -82,3 +77,21 @@ class DocumentIngestion:
             raise DocumentPortalException("Error Occured while combined_documents" , sys)
         
 
+    def clean_old_sessions(self, keep_latest: int = 3):
+        """
+        Optional method to delete older session folders, keeping only the latest N.
+        """
+        try:
+            session_folders = sorted(
+                [f for f in self.base_dir.iterdir() if f.is_dir()],
+                reverse=True
+            )
+            for folder in session_folders[keep_latest:]:
+                for file in folder.iterdir():
+                    file.unlink()
+                folder.rmdir()
+                self.log.info("Old session folder deleted", path=str(folder))
+
+        except Exception as e:
+            self.log.error("Error cleaning old sessions", error=str(e))
+            raise DocumentPortalException("Error cleaning old sessions", sys)

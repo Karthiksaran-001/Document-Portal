@@ -8,7 +8,7 @@ from logger.custom_logger import CustomLogging
 from exception.custom_exception import DocumentPortalException
 load_dotenv()
 
-logger = CustomLogging().get_logger(__file__)
+
 
 
 class ModelLoader:
@@ -16,6 +16,7 @@ class ModelLoader:
         A utility Class help to load model and Embedding as per configuration
     '''
     def __init__(self):
+        self.logger = CustomLogging().get_logger(__name__)
         self.validate_env_variable()
         self.config = load_config() 
         
@@ -28,9 +29,9 @@ class ModelLoader:
         self.api_keys={key:os.getenv(key) for key in required_vars}
         missing = [k for k, v in self.api_keys.items() if not v]
         if missing:
-            logger.error("Missing environment variables", missing_vars=missing)
+            self.logger.error("Missing environment variables", missing_vars=missing)
             raise DocumentPortalException("Missing environment variables", sys)
-        logger.info("Environment variables validated", available_keys=[k for k in self.api_keys if self.api_keys[k]]) 
+        self.logger.info("Environment variables validated", available_keys=[k for k in self.api_keys if self.api_keys[k]]) 
 
     def load_model(self):
         """
@@ -40,11 +41,11 @@ class ModelLoader:
         
         llm_block = self.config["llm"]
 
-        logger.info("Loading LLM...")
+        self.logger.info("Loading LLM...")
         
         provider_key = os.getenv("LLM_PROVIDER", "groq") # Default groq
         if provider_key not in llm_block:
-            logger.error("LLM provider not found in config", provider_key=provider_key)
+            self.logger.error("LLM provider not found in config", provider_key=provider_key)
             raise ValueError(f"Provider '{provider_key}' not found in config")
 
         llm_config = llm_block[provider_key]
@@ -53,7 +54,7 @@ class ModelLoader:
         temperature = llm_config.get("temperature", 0.2)
         max_tokens = llm_config.get("max_output_tokens", 2048)
         
-        logger.info("Loading LLM", provider=provider, model=model_name, temperature=temperature, max_tokens=max_tokens)
+        self.logger.info("Loading LLM", provider=provider, model=model_name, temperature=temperature, max_tokens=max_tokens)
 
         if provider == "google":
             llm=ChatGoogleGenerativeAI(
@@ -72,18 +73,18 @@ class ModelLoader:
             return llm
             
         else:
-            logger.error("Unsupported LLM provider", provider=provider)
+            self.logger.error("Unsupported LLM provider", provider=provider)
             raise ValueError(f"Unsupported LLM provider: {provider}") 
     def load_embedding(self):
         """
         Load and return the embedding model.
         """
         try:
-            logger.info("Loading embedding model...")
+            self.logger.info("Loading embedding model...")
             model_name = self.config["embedding_model"]["model_name"]
             return GoogleGenerativeAIEmbeddings(model=model_name)
         except Exception as e:
-            logger.error("Error loading embedding model", error=str(e))
+            self.logger.error("Error loading embedding model", error=str(e))
             raise DocumentPortalException("Failed to load embedding model", sys)
         
 
