@@ -5,6 +5,7 @@ notebook
 streamlit
 pandas
 langchain_groq
+langchain-core[tracing]
 langchain-google-genai
 pypdf
 faiss-cpu
