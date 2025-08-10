@@ -7,4 +7,7 @@ logs/
 *.pyc
 test.py
 *.pdf
+*.txt
+*.docx
+*.doc
 faiss_index/*
