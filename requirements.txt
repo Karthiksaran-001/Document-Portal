@@ -4,6 +4,7 @@ langchain-openai
 notebook
 streamlit
 pandas
+docx2txt
 langchain_groq
 langchain-core[tracing]
 langchain-google-genai

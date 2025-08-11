@@ -27,8 +27,8 @@ class DocumentIngestor:
             self.session_faiss_dir.mkdir(parents = True,exist_ok=True)
             self.model_loader = ModelLoader()
             self.log.info("DocumentIngestor initalized" , 
-                          temp_path = str(self.temp_dir) , 
-                          faiss_path = str(self.faiss_dir) , 
+                          temp_dir = str(self.temp_dir) , 
+                          faiss_dir = str(self.faiss_dir) , 
                           session_id = self.session_id,
                           temp_path = str(self.session_temp_dir) , faiss_path = str(self.session_faiss_dir))
         except Exception as e:
@@ -38,15 +38,15 @@ class DocumentIngestor:
         try:
             documents = []
             for file in uploaded_files:
-                ext = Path(file.filename).suffix.lower()
+                ext = Path(file.name).suffix.lower()
                 if ext not in self.SUYPPORTED_EXTENSIONS:
                     self.log.warning("Unsupported file" , file_name = file.filename)
                     continue
                 unique_filename = f"{uuid.uuid4().hex}{ext}"
                 file_path = self.session_temp_dir / unique_filename
                 with open(file_path , "wb") as buffer:
-                    buffer.write(file.file.read())
-                self.log.info("File saved for Ingestion" , file_name = file.filename , file_path = str(file_path) , session_id = self.session_id)
+                    buffer.write(file.read())
+                self.log.info("File saved for Ingestion" , file_name = file.name , file_path = str(file_path) , session_id = self.session_id)
                 
                 if ext == ".pdf":
                     loader = PyPDFLoader(str(file_path))

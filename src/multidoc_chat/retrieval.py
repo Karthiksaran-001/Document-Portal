@@ -1,6 +1,7 @@
 import sys
 import os
-from typing import List , Optional
+from typing import List , Optional 
+from langchain_core.messages import BaseMessage
 from operator import itemgetter
 from pathlib import Path
 import streamlit as st
@@ -38,15 +39,25 @@ class ConversationalRAG:
                                            embedding,
                                            allow_dangerous_deserialization=True)
             self.retriver = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
-            self._build_lcel_chain()
             return self.retriver
         except Exception as e:
             self.log.error("Failed in retriever_drom_faiss" , error = str(e))
             raise DocumentPortalException(e, sys)
     
-    def invoke(self):
+    def invoke(self,user_input:str , chat_history : Optional[List[BaseMessage]] = None):
+        
         try:
-            pass 
+            if chat_history is None:
+                chat_history = []
+            payload = {
+                    "input" : user_input,
+                    "chat_history" : chat_history}
+            answer = self.chain.invoke(payload) 
+            if answer is None:
+                self.log.warning("Answer is None" ,input = user_input ,session_id = self.session_id)
+                return "No answer found"
+            self.log.info("Answer generated" , session_id = self.session_id, input = user_input , answer_preview = answer[:100])
+            return answer
         except Exception as e:
             self.log.error("Failed in invoke" , error = str(e))
             raise DocumentPortalException(e, sys)
@@ -70,24 +81,31 @@ class ConversationalRAG:
     
     def _build_lcel_chain(self):
         try:
+            # 1) Rewrite question using chat history
             question_rewriter = (
-                {"input" : itemgetter("input"),"chat_history": itemgetter("chat_history")}|
-                self.contextualize_prompt
-                |self.llm
-                |StrOutputParser
+                {"input": itemgetter("input"), "chat_history": itemgetter("chat_history")}
+                | self.contextualize_prompt
+                | self.llm
+                | StrOutputParser()
             )
-            retrived_docs = question_rewriter | self.retriver | self._format_docs
-            self.chain =(
+
+            # 2) Retrieve docs for rewritten question
+            retrieve_docs = question_rewriter | self.retriver | self._format_docs
+
+            # 3) Feed context + original input + chat history into answer prompt
+            self.chain = (
                 {
-                    "context" : retrived_docs,
-                    "input" : itemgetter("input"),
-                    "chat_history": itemgetter("chat_history")
+                    "context": retrieve_docs,
+                    "input": itemgetter("input"),
+                    "chat_history": itemgetter("chat_history"),
                 }
-                |self.qa_prompt
-                |self.llm
-                |StrOutputParser
-            ) 
+                | self.qa_prompt
+                | self.llm
+                | StrOutputParser()
+            )
+
+            self.log.info("LCEL graph built successfully", session_id=self.session_id)
+
         except Exception as e:
-            self.log.error("Failed in build lcel chain" , error = str(e))
-            raise DocumentPortalException(e, sys)
-    
+            self.log.error("Failed to build LCEL chain", error=str(e), session_id=self.session_id)
+            raise DocumentPortalException("Failed to build LCEL chain", sys)
