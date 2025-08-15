@@ -2,7 +2,7 @@ import os
 import sys
 from utils.models_loader import ModelLoader
 from logger.custom_logger import CustomLogging
-from exception.custom_exception import DocumentPortalException
+from exception.custom_exception_archieve import DocumentPortalException
 from model.models import *
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.output_parsers import OutputFixingParser

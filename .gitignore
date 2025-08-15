@@ -11,3 +11,4 @@ test.py
 *.docx
 *.doc
 faiss_index/*
+archieve/*

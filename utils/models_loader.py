@@ -5,7 +5,7 @@ import sys
 from dotenv import load_dotenv
 from utils.config_loader import load_config
 from logger.custom_logger import CustomLogging
-from exception.custom_exception import DocumentPortalException
+from exception.custom_exception_archieve import DocumentPortalException
 load_dotenv()
 
 
