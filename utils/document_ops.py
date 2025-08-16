@@ -22,8 +22,8 @@ from exception.custom_exception import DocumentPortalException
 
 log = CustomLogging().get_logger(__name__)
 
-SUPPORTED_EXTENSIONS = load_config()["doc_ingestion"]["supported_extensions"]
-#SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
+#SUPPORTED_EXTENSIONS = load_config()["doc_ingestion"]["supported_extensions"]
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 def load_documents(paths: Iterable[Path]) -> List[Document]:
     """Load docs using appropriate loader based on extension."""

@@ -24,8 +24,7 @@ warnings.filterwarnings("ignore")
 
 
 
-SUPPORTED_EXTENSIONS = load_config()["doc_ingestion"]["supported_extensions"]
-
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 class FAISSManager:
     def __init__(self, index_dir: Path, model_loader: Optional[ModelLoader] = None):
         self.index_dir = Path(index_dir)

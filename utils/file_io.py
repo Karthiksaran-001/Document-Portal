@@ -14,7 +14,7 @@ from logger.custom_logger import CustomLogging
 from exception.custom_exception import DocumentPortalException
 log = CustomLogging().get_logger(__name__)
 
-SUPPORTED_EXTENSIONS = load_config()["doc_ingestion"]["supported_extensions"]
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 # ----------------------------- #
 # Helpers (file I/O + loading)  #

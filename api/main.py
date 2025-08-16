@@ -9,7 +9,7 @@ from pathlib import Path
 
 from src.document_ingestion.data_ingestion import (
     DocHandler,
-    DocumentCompare,
+    DocumentComparator,
     ChatIngestor,
     FAISSManager,
 )
@@ -78,7 +78,7 @@ async def analyze_document(file: UploadFile = File(...)) -> Any:
 @app.post("/compare")
 async def compare_documents(reference: UploadFile = File(...) , actual: UploadFile = File(...)) -> Any:
     try:
-        dc = DocumentCompare()
+        dc = DocumentComparator()
         ref_path , act_path = dc.save_upload_file(FastAPIFileAdapter(reference), FastAPIFileAdapter(actual))
         _ = ref_path , act_path
         combined_text = dc.combine_documets(ref_path, act_path)
