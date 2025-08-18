@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 import structlog
 
-class CustomLogging:
+class CustomLogger:
     def __init__(self, log_dir="logs"):
         # Ensure logs directory exists
         self.logs_dir = os.path.join(os.getcwd(), log_dir)
@@ -46,8 +46,8 @@ class CustomLogging:
         return structlog.get_logger(logger_name)
 
 
-# --- Usage Example ---
+# # --- Usage Example ---
 # if __name__ == "__main__":
-#     logger = CustomLogging().get_logger(__file__)
+#     logger = CustomLogger().get_logger(__file__)
 #     logger.info("User uploaded a file", user_id=123, filename="report.pdf")
 #     logger.error("Failed to process PDF", error="File not found", user_id=123)

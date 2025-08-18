@@ -1,46 +1,44 @@
-import os , sys 
-from pathlib import Path 
-from logger.custom_logger import CustomLogging
-from exception.custom_exception_archieve import DocumentPortalException
-from utils.models_loader import ModelLoader
-from utils.config_loader import load_config
-from prompt.prompt_library import PROMPT_REGISTRY
+import sys
 from dotenv import load_dotenv
-import pandas as pd 
-from model.models import *
-from langchain.output_parsers import OutputFixingParser
+import pandas as pd
 from langchain_core.output_parsers import JsonOutputParser
+from langchain.output_parsers import OutputFixingParser
+from utils.models_loader import ModelLoader
+from logger import GLOBAL_LOGGER as log
+from exception.custom_exception import DocumentPortalException
+from prompt.prompt_library import PROMPT_REGISTRY
+from model_config.models import SummaryResponse,PromptType
 
 class DocumentComparatorLLM:
     def __init__(self):
         load_dotenv()
-        self.log = CustomLogging().get_logger(__name__)
         self.loader = ModelLoader()
-        self.llm = self.loader.load_model() 
-        self.parser = JsonOutputParser(pydantic_object= SummaryResponse)
+        self.llm = self.loader.load_model()
+        self.parser = JsonOutputParser(pydantic_object=SummaryResponse)
         self.fixing_parser = OutputFixingParser.from_llm(parser=self.parser, llm=self.llm)
-        self.prompt = PROMPT_REGISTRY["document_comparison"]
+        self.prompt = PROMPT_REGISTRY[PromptType.DOCUMENT_COMPARISON.value]
         self.chain = self.prompt | self.llm | self.parser
-        self.log.info("DocumentComparatorLLM initialized with model and parser")
-    def compare_documents(self , combined_doc):
+        log.info("DocumentComparatorLLM initialized", model=self.llm)
+
+    def compare_documents(self, combined_docs: str) -> pd.DataFrame:
         try:
             inputs = {
-                "combined_docs" : combined_doc,
-                "format_instruction" : self.parser.get_format_instructions()    
-            } 
-            self.log.info("Starting Doc Comparision" , inputs = inputs)
+                "combined_docs": combined_docs,
+                "format_instruction": self.parser.get_format_instructions()
+            }
+
+            log.info("Invoking document comparison LLM chain")
             response = self.chain.invoke(inputs)
-            self.log.info("Document Comparision completed" , response = response)
+            log.info("Chain invoked successfully", response_preview=str(response)[:200])
             return self._format_response(response)
         except Exception as e:
-            self.log.error(f"Error Occured while compare_documents : {e}")
-            raise DocumentPortalException("Error Occured while compare_documents" , sys)
-    
-    def _format_response(self,response:list[dict])->pd.DataFrame:
+            log.error("Error in compare_documents", error=str(e))
+            raise DocumentPortalException("Error comparing documents", sys)
+
+    def _format_response(self, response_parsed: list[dict]) -> pd.DataFrame: #type: ignore
         try:
-            response_df = pd.DataFrame(response)
-            self.log.info("Convert response into DataFrame" , df = response_df)
-            return response_df 
+            df = pd.DataFrame(response_parsed)
+            return df
         except Exception as e:
-            self.log.error(f"Error Occured while compare_documents : {e}")
-            raise DocumentPortalException("Error Occured while compare_documents" , sys)
+            log.error("Error formatting response into DataFrame", error=str(e))
+            DocumentPortalException("Error formatting response", sys)
