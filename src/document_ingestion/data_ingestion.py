@@ -170,8 +170,6 @@ class ChatIngestor:
             raise DocumentPortalException("Failed to build retriever", e) from e
 
             
-        
-            
 class DocHandler:
     """
     PDF save + read (page-wise) for analysis.
