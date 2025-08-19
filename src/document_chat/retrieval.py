@@ -125,7 +125,7 @@ class ConversationalRAG:
 
     def _load_llm(self):
         try:
-            llm = ModelLoader().load_model()
+            llm = ModelLoader().load_models()
             if not llm:
                 raise ValueError("LLM could not be loaded")
             log.info("LLM loaded successfully", session_id=self.session_id)

@@ -16,7 +16,7 @@ class DocumentAnalyzer:
     def __init__(self):
         try:
             self.loader=ModelLoader()
-            self.llm=self.loader.load_llm()
+            self.llm=self.loader.load_models()
             
             # Prepare parsers
             self.parser = JsonOutputParser(pydantic_object=Metadata)

@@ -13,7 +13,7 @@ class DocumentComparatorLLM:
     def __init__(self):
         load_dotenv()
         self.loader = ModelLoader()
-        self.llm = self.loader.load_model()
+        self.llm = self.loader.load_models()
         self.parser = JsonOutputParser(pydantic_object=SummaryResponse)
         self.fixing_parser = OutputFixingParser.from_llm(parser=self.parser, llm=self.llm)
         self.prompt = PROMPT_REGISTRY[PromptType.DOCUMENT_COMPARISON.value]
